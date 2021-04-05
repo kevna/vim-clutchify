@@ -3,7 +3,7 @@ from types import SimpleNamespace, GeneratorType
 
 import pytest
 from xinput import MODE_ENABLE, MODE_DISABLE
-from evdev import UInput, InputDevice, InputEvent, ecodes
+from evdev import UInput, InputDevice, ecodes
 
 from vim_clutchify.device import _get_device, DeviceContext, DeviceConfigurationError
 
@@ -36,7 +36,8 @@ def context(uinput, input_device):
     ('^HID', SimpleNamespace(name='HID 1a86:e026 Keyboard')),
 ))
 @patch('vim_clutchify.device.InputDevice', side_effect=lambda name: SimpleNamespace(name=name))
-@patch('vim_clutchify.device.list_devices', return_value=['PC Speaker', 'HID 1a86:e026 Keyboard', 'FootSwitch'])
+@patch('vim_clutchify.device.list_devices',
+       return_value=['PC Speaker', 'HID 1a86:e026 Keyboard', 'FootSwitch'])
 def test_get_device(mock_list, mock_id, device_name, expected):
     actual = _get_device(device_name)
     assert actual == expected
@@ -48,7 +49,8 @@ def test_get_device(mock_list, mock_id, device_name, expected):
     'HID$',
 ))
 @patch('vim_clutchify.device.InputDevice', side_effect=lambda name: SimpleNamespace(name=name))
-@patch('vim_clutchify.device.list_devices', return_value=['PC Speaker', 'HID 1a86:e026 Keyboard', 'FootSwitch'])
+@patch('vim_clutchify.device.list_devices',
+       return_value=['PC Speaker', 'HID 1a86:e026 Keyboard', 'FootSwitch'])
 def test_get_device_error(mock_list, mock_id, device_name):
     with pytest.raises(DeviceConfigurationError):
         _get_device(device_name)
@@ -66,20 +68,21 @@ class TestDeviceContext:
         input_device.read_loop.return_value = iter(read_loop)
         actual = context.event_loop()
         assert isinstance(actual, GeneratorType)
-        assert not input_device.read_loop.called  # Because the function is a generator this isn't called until it's consumed.
+        # Because the function is a generator this isn't called until it's consumed.
+        assert not input_device.read_loop.called
         assert list(actual) == read_loop
         assert input_device.read_loop.called
 
     @pytest.mark.parametrize('key, exp_key', (
-        ('f11', ecodes.KEY_F11),
-        ('f12', ecodes.KEY_F12),
-        ('micMute', ecodes.KEY_MICMUTE),
+        ('f11', ecodes.KEY_F11),  # pylint: disable=no-member
+        ('f12', ecodes.KEY_F12),  # pylint: disable=no-member
+        ('micMute', ecodes.KEY_MICMUTE),  # pylint: disable=no-member
     ))
     def test_tap(self, key, exp_key, context, uinput):
         context.tap(key)
         assert uinput.write.call_args_list == [
-            call(ecodes.EV_KEY, exp_key, 1),
-            call(ecodes.EV_KEY, exp_key, 0),
+            call(ecodes.EV_KEY, exp_key, 1),  # pylint: disable=no-member
+            call(ecodes.EV_KEY, exp_key, 0),  # pylint: disable=no-member
         ]
         assert uinput.syn.called
 
