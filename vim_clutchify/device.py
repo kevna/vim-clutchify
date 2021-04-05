@@ -28,7 +28,7 @@ def _get_device(device_name: str) -> InputDevice:
     raise DeviceConfigurationError(f'No device found to match "{device_name}"')
 
 
-class DeviceContext():
+class DeviceContext:
     """Context Handler to provide UInput functionality.
     This wraps UInput context handler to disable the xinput device while in use.
     It also provides some uinput helper methods to expose uinput functionality.
