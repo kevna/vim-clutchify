@@ -1,8 +1,11 @@
 #!/usr/bin/env python
+import sys
 from argparse import ArgumentParser, Namespace
+
 from evdev import ecodes
 
-from vim_clutchify.device import DeviceContext
+from vim_clutchify.device import DeviceContext, DeviceError
+
 
 def parse_args() -> Namespace:
     """Generate an ArgumentParser for commandline arguments."""
@@ -29,7 +32,11 @@ def core_loop(config: Namespace) -> None:
 def main() -> None:
     """CLI entrypoint."""
     config = parse_args()
-    core_loop(config)
+    try:
+        core_loop(config)
+    except DeviceError as error:
+        print(error)
+        sys.exit(126)
 
 
 if __name__ == '__main__':

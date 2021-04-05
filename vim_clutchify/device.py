@@ -3,7 +3,30 @@ from typing import Optional, Type, Iterable
 from types import TracebackType
 
 from xinput import operate_xinput_device, MODE_ENABLE, MODE_DISABLE
-from evdev import list_devices, InputDevice, InputEvent, UInput, ecodes as e
+from evdev import list_devices, InputDevice, InputEvent, UInput, ecodes
+
+
+class DeviceError(Exception):
+    """General error class for the device library."""
+
+
+class DeviceConfigurationError(DeviceError):
+    """Subclass of DeviceError for configuration problems."""
+
+
+def _get_device(device_name: str) -> InputDevice:
+    """Helper to get a device using a regex to match names.
+    :param device_name: string to use for matching the device name
+    :return: device object form the first match
+    :raises:
+        DeviceConfigurationError: if no matching devices were found
+    """
+    for device in list_devices():
+        device = InputDevice(device)
+        if re.search(device_name, device.name):
+            return device
+    raise DeviceConfigurationError(f'No device found to match "{device_name}"')
+
 
 class DeviceContext():
     """Context Handler to provide UInput functionality.
@@ -13,8 +36,7 @@ class DeviceContext():
     """
 
     def __init__(self, device_name: str):
-        devices = [InputDevice(fn) for fn in list_devices()]
-        self.device = next(x for x in devices if re.search(device_name, x.name))
+        self.device = _get_device(device_name)
         self.uinput = UInput()
 
     def __enter__(self) -> 'DeviceContext':
@@ -36,10 +58,10 @@ class DeviceContext():
         """Tap a key by sending instantaneous keydown, keyup and syncing.
         :param key: String key name to tap (from evdev.ecodes.KEY_*)
         """
-        key = e.ecodes[f'KEY_{key.upper()}']
+        key = ecodes.ecodes[f'KEY_{key.upper()}']
         # Pylint claims evdev.ecodes.EV_KEY doesn't exists so needs disabling
-        self.uinput.write(e.EV_KEY, key, 1)  # pylint: disable=no-member
-        self.uinput.write(e.EV_KEY, key, 0)  # pylint: disable=no-member
+        self.uinput.write(ecodes.EV_KEY, key, 1)  # pylint: disable=no-member
+        self.uinput.write(ecodes.EV_KEY, key, 0)  # pylint: disable=no-member
         self.uinput.syn()
 
     def __exit__(self, typ: Optional[Type[BaseException]],
