@@ -7,7 +7,7 @@ from evdev import ecodes
 from vim_clutchify.device import DeviceContext, DeviceError
 
 
-def parse_args(args = sys.argv) -> Namespace:
+def parse_args(args: list) -> Namespace:
     """Generate an ArgumentParser for commandline arguments."""
     parser = ArgumentParser(description='Convert down and up keystrokes to two separate taps.')
     parser.add_argument('--device', default='FootSwitch', dest='device_name')
@@ -31,7 +31,7 @@ def core_loop(config: Namespace) -> None:
 
 def main() -> None:
     """CLI entrypoint."""
-    config = parse_args()
+    config = parse_args(sys.argv[1:])
     try:
         core_loop(config)
     except DeviceError as error:

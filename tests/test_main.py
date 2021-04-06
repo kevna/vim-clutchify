@@ -4,7 +4,8 @@ from argparse import Namespace
 import pytest
 from evdev import ecodes, InputEvent
 
-from vim_clutchify.__main__ import parse_args, core_loop
+from vim_clutchify.__main__ import parse_args, core_loop, main
+from vim_clutchify.device import DeviceConfigurationError
 
 
 def config_ns(**kwargs):
@@ -36,7 +37,7 @@ def input_event(typ=ecodes.EV_KEY, code=ecodes.KEY_F11, value='down'):
     (['--up', 'F23', '--down', 'F24'], config_ns(up='F23', down='F24')),
 ))
 def test_parse_args(args, expected):
-    actual = parse_args(args=args)
+    actual = parse_args(args)
     assert actual == expected
 
 
@@ -84,3 +85,18 @@ def test_core_loop(config, events, exp_taps):
         assert context.call_args == call(config.device_name)
         assert instance.event_loop.called
         assert instance.tap.call_args_list == exp_taps
+
+def test_main():
+    with patch('vim_clutchify.__main__.parse_args') as parse, \
+            patch('vim_clutchify.__main__.core_loop') as loop:
+        main()
+        assert parse.called
+        assert loop.call_args == call(parse.return_value)
+
+def test_main_error():
+    with patch('vim_clutchify.__main__.parse_args') as parse, \
+            patch('vim_clutchify.__main__.core_loop', side_effect=DeviceConfigurationError) as loop:
+        with pytest.raises(SystemExit):
+            main()
+        assert parse.called
+        assert loop.call_args == call(parse.return_value)
