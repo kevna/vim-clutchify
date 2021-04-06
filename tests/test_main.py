@@ -1,10 +1,10 @@
 from unittest.mock import patch, call
-from types import SimpleNamespace
+from argparse import Namespace
 
 import pytest
 from evdev import ecodes, InputEvent
 
-from vim_clutchify.__main__ import core_loop
+from vim_clutchify.__main__ import parse_args, core_loop
 
 
 def config_ns(**kwargs):
@@ -14,7 +14,9 @@ def config_ns(**kwargs):
         'up': 'F12',
         **kwargs,
     }
-    return SimpleNamespace(**kwargs)
+    return Namespace(**kwargs)
+
+
 def input_event(typ=ecodes.EV_KEY, code=ecodes.KEY_F11, value='down'):
     value = {
         'down': 1,
@@ -22,6 +24,20 @@ def input_event(typ=ecodes.EV_KEY, code=ecodes.KEY_F11, value='down'):
         'up': 0,
     }[value]
     return InputEvent(1617662278, 0.93205, typ, code, value)
+
+
+@pytest.mark.parametrize('args, expected', (
+    ([], config_ns()),
+    (['--device', '1a86:e026'], config_ns(device_name='1a86:e026')),
+    (
+        ['--device=1a86:e026', '--up=micmute', '--down=micmute'],
+        config_ns(device_name='1a86:e026', up='micmute', down='micmute'),
+    ),
+    (['--up', 'F23', '--down', 'F24'], config_ns(up='F23', down='F24')),
+))
+def test_parse_args(args, expected):
+    actual = parse_args(args=args)
+    assert actual == expected
 
 
 @pytest.mark.parametrize('config, events, exp_taps', (

@@ -7,13 +7,13 @@ from evdev import ecodes
 from vim_clutchify.device import DeviceContext, DeviceError
 
 
-def parse_args() -> Namespace:
+def parse_args(args = sys.argv) -> Namespace:
     """Generate an ArgumentParser for commandline arguments."""
     parser = ArgumentParser(description='Convert down and up keystrokes to two separate taps.')
     parser.add_argument('--device', default='FootSwitch', dest='device_name')
     parser.add_argument('--down', default='F11')
     parser.add_argument('--up', default='F12')
-    return parser.parse_args()
+    return parser.parse_args(args)
 
 
 def core_loop(config: Namespace) -> None:
