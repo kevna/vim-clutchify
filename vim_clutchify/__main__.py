@@ -13,7 +13,7 @@ CLUTCHIFY_BUILTINS: Dict[str, tuple] = {
     'legacy': ('i', 'esc'),
     'f-low': ('F11', 'F12'),
     'f-high': ('F23', 'F24'),
-    'ptt': ('micmute',),
+    'ptt': ('F20',),  # Keycode 190 is the correct code for KEY_MICMUTE in linux
 }
 
 
